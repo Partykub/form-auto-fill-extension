@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Form Auto Filler</title>
+    <style>
+      body {
+        box-sizing: border-box;
+        width: 320px;
+        margin: 0;
+        padding: 20px;
+        color: #172033;
+        font-family: system-ui, sans-serif;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 20px;
+      }
+
+      p {
+        margin: 0 0 16px;
+        line-height: 1.45;
+      }
+
+      button {
+        width: 100%;
+        margin-top: 8px;
+        padding: 10px 12px;
+        border: 0;
+        border-radius: 8px;
+        background: #2952cc;
+        color: white;
+        cursor: pointer;
+        font: inherit;
+      }
+
+      button:disabled {
+        background: #a8b0c2;
+        cursor: not-allowed;
+      }
+
+      .secondary {
+        background: #edf1fb;
+        color: #172033;
+      }
+
+      #status {
+        min-height: 42px;
+        color: #536078;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Form Auto Filler</h1>
+    <p id="status">Checking this page...</p>
+    <button id="autofill" type="button" disabled>Autofill</button>
+    <button id="options" class="secondary" type="button">Manage Profile</button>
+    <script src="popup.js"></script>
+  </body>
+</html>
+

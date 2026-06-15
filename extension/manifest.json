@@ -1,0 +1,49 @@
+{
+  "manifest_version": 3,
+  "name": "Form Auto Filler",
+  "version": "0.1.0",
+  "description": "Match profile data to Google Forms and Microsoft Forms.",
+  "permissions": [
+    "storage",
+    "alarms",
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://docs.google.com/forms/*",
+    "https://forms.office.com/*",
+    "https://forms.microsoft.com/*",
+    "http://localhost:3000/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Form Auto Filler",
+    "default_popup": "popup.html"
+  },
+  "options_page": "options.html",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://docs.google.com/forms/*",
+        "https://forms.office.com/*",
+        "https://forms.microsoft.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "commands": {
+    "run-autofill": {
+      "suggested_key": {
+        "default": "Alt+Shift+F",
+        "mac": "Command+Shift+F"
+      },
+      "description": "Run autofill on the active form"
+    }
+  }
+}
+
