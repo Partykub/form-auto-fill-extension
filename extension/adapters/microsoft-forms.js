@@ -112,7 +112,7 @@
       const titleElement = core.queryFirst(container, TITLE_SELECTORS);
       const initialControl = this.findPrimaryControl(container);
       const text =
-        core.normalizeText(titleElement?.textContent) ||
+        core.getVisibleText(titleElement) ||
         core.getAccessibleText(container) ||
         core.getAccessibleText(initialControl);
       if (!text) {
@@ -128,12 +128,13 @@
       const rawType = this.getRawType(container);
       const type = this.getQuestionType(container, text, rawType);
       const description = core.normalizeText(
-        core.queryFirst(container, DESCRIPTION_SELECTORS)?.textContent,
+        core.getVisibleText(core.queryFirst(container, DESCRIPTION_SELECTORS)),
       );
       const control = this.findPrimaryControl(container, type);
       const required =
         core.parseBoolean(container.getAttribute("data-required")) ||
         container.getAttribute("aria-required") === "true" ||
+        Boolean(container.querySelector('[aria-required="true"]')) ||
         Boolean(control?.required) ||
         control?.getAttribute("aria-required") === "true";
 

@@ -208,6 +208,46 @@ test("adapters can use aria-labelledby when a dedicated title element is absent"
   dom.window.close();
 });
 
+test("Google adapter supports live semantic listitem markup without data attributes", async () => {
+  const dom = await createExtensionDom({
+    html: `
+      <form action="https://docs.google.com/forms/d/e/example/formResponse">
+        <div role="list">
+          <div role="listitem">
+            <div role="heading" aria-level="3">เพศ <span aria-hidden="true">*</span></div>
+            <div role="radiogroup" aria-required="true">
+              <div role="radio" data-value="ชาย" aria-label="ชาย"></div>
+              <div role="radio" data-value="หญิง" aria-label="หญิง"></div>
+            </div>
+          </div>
+          <div role="listitem">
+            <div role="heading" aria-level="3">อายุ <span aria-hidden="true">*</span></div>
+            <input type="text" aria-required="true">
+          </div>
+        </div>
+      </form>
+    `,
+    url: "https://docs.google.com/forms/d/e/example/viewform",
+  });
+  const adapter = dom.window.FormAutoFill.adapterRegistry.createAdapter(
+    dom.window.document,
+    dom.window.location,
+  );
+
+  await adapter.waitForReady();
+  const result = adapter.extractQuestions();
+
+  assert.equal(result.questions.length, 2);
+  assert.equal(result.questions[0].text, "เพศ");
+  assert.equal(result.questions[0].type, "radio");
+  assert.equal(result.questions[0].options.length, 2);
+  assert.equal(result.questions[0].required, true);
+  assert.equal(result.questions[1].text, "อายุ");
+  assert.equal(result.questions[1].type, "short_text");
+  assert.equal(result.questions[1].required, true);
+  dom.window.close();
+});
+
 test("observeChanges debounces mutations and detects a section update", async () => {
   const dom = await createExtensionDom({
     html: `

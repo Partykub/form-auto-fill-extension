@@ -42,6 +42,18 @@
       .trim();
   }
 
+  function getVisibleText(element) {
+    if (!element) {
+      return "";
+    }
+
+    const clone = element.cloneNode(true);
+    clone
+      .querySelectorAll('[aria-hidden="true"], [hidden]')
+      .forEach((hiddenElement) => hiddenElement.remove());
+    return normalizeText(clone.textContent);
+  }
+
   function createStableId(platform, nativeId, text, occurrence) {
     if (normalizeText(nativeId)) {
       return `${platform}:${normalizeText(nativeId)}`;
@@ -292,6 +304,7 @@
     createStableId,
     extractOptions,
     getAccessibleText,
+    getVisibleText,
     inferTextType,
     isElementVisible,
     normalizeText,
