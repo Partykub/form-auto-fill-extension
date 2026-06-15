@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+  <body>
+    <h1>Employee Survey</h1>
+    <p>Survey description must not be extracted.</p>
+    <main>
+      <form data-microsoft-form>
+        <section data-automation-id="questionItem" data-question-id="name" data-question-type="text" data-required="true">
+          <div data-automation-id="questionTitle">ชื่อพนักงาน</div>
+          <div data-automation-id="questionSubtitle">ชื่อที่ใช้ในระบบ</div>
+          <input type="text" aria-required="true">
+        </section>
+
+        <section data-automation-id="questionItem" data-question-id="notes" data-question-type="long_text">
+          <div data-automation-id="questionTitle">หมายเหตุ</div>
+          <textarea></textarea>
+        </section>
+
+        <section data-automation-id="questionItem" data-question-id="email" data-question-type="text">
+          <div data-automation-id="questionTitle">Work email</div>
+          <input type="email">
+        </section>
+
+        <section data-automation-id="questionItem" data-question-id="phone" data-question-type="text">
+          <div data-automation-id="questionTitle">หมายเลขโทรศัพท์</div>
+          <input type="text">
+        </section>
+
+        <section data-automation-id="questionItem" data-question-id="shift" data-question-type="choice">
+          <div data-automation-id="questionTitle">กะทำงาน</div>
+          <label><input id="m-day" type="radio" name="shift" value="day"> Day</label>
+          <label><input id="m-night" type="radio" name="shift" value="night"> Night</label>
+        </section>
+
+        <section data-automation-id="questionItem" data-question-id="benefits" data-question-type="multiple_choice">
+          <div data-automation-id="questionTitle">สวัสดิการที่สนใจ</div>
+          <label><input id="m-health" type="checkbox" value="health"> Health</label>
+          <label><input id="m-travel" type="checkbox" value="travel" disabled> Travel</label>
+        </section>
+
+        <section data-automation-id="questionItem" data-question-id="office" data-question-type="dropdown">
+          <div data-automation-id="questionTitle">สำนักงาน</div>
+          <select>
+            <option value="bangkok">Bangkok</option>
+            <option value="chiang-mai">Chiang Mai</option>
+          </select>
+        </section>
+
+        <section data-automation-id="questionItem" data-question-id="rating" data-question-type="rating">
+          <div data-automation-id="questionTitle">ความพึงพอใจ</div>
+          <div role="slider"></div>
+        </section>
+
+        <section data-automation-id="questionItem" data-question-id="hidden" data-question-type="text" aria-hidden="true">
+          <div data-automation-id="questionTitle">Hidden question</div>
+          <input type="text">
+        </section>
+
+        <section data-automation-id="questionItem" data-question-id="malformed" data-question-type="text">
+          <input type="text">
+        </section>
+      </form>
+    </main>
+  </body>
+</html>
+

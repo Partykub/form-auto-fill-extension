@@ -1,0 +1,75 @@
+<!doctype html>
+<html>
+  <body>
+    <h1>Registration Form</h1>
+    <p>Form description must not be extracted.</p>
+    <h2>Personal details</h2>
+
+    <form data-google-form action="https://docs.google.com/forms/d/e/example/formResponse">
+      <section data-question-id="name" data-question-type="text" data-required="true">
+        <div data-question-title>ชื่อ-นามสกุล</div>
+        <div data-question-description>กรอกตามบัตรประชาชน</div>
+        <input type="text" required>
+      </section>
+
+      <section data-question-id="bio" data-question-type="paragraph">
+        <div data-question-title>แนะนำตัว</div>
+        <textarea></textarea>
+      </section>
+
+      <section data-question-id="email" data-question-type="text">
+        <div data-question-title>อีเมลสำหรับติดต่อ</div>
+        <input type="text" autocomplete="email">
+      </section>
+
+      <section data-question-id="phone" data-question-type="text">
+        <div data-question-title>เบอร์ติดต่อกลับ</div>
+        <input type="text">
+      </section>
+
+      <section data-question-id="province" data-question-type="multiple_choice">
+        <div data-question-title>จังหวัด</div>
+        <label><input id="g-bkk" type="radio" name="province" value="bkk"> Bangkok</label>
+        <label><input id="g-cmi" type="radio" name="province" value="cmi" disabled> Chiang Mai</label>
+      </section>
+
+      <section data-question-id="skills" data-question-type="checkboxes">
+        <div data-question-title>ทักษะ</div>
+        <label><input id="g-js" type="checkbox" value="javascript"> JavaScript</label>
+        <label><input id="g-node" type="checkbox" value="node"> Node.js</label>
+      </section>
+
+      <section data-question-id="department" data-question-type="dropdown">
+        <div data-question-title>แผนก</div>
+        <select>
+          <option value="engineering">Engineering</option>
+          <option value="design">Design</option>
+        </select>
+      </section>
+
+      <section data-question-id="start-date" data-question-type="date">
+        <div data-question-title>วันที่เริ่มงาน</div>
+        <input type="date">
+      </section>
+
+      <section data-question-id="hidden-question" data-question-type="text" hidden>
+        <div data-question-title>Hidden question</div>
+        <input type="text">
+      </section>
+
+      <section role="listitem" data-question-type="text">
+        <div data-question-title>คำถามซ้ำ</div>
+        <input type="text">
+      </section>
+      <section role="listitem" data-question-type="text">
+        <div data-question-title>คำถามซ้ำ</div>
+        <input type="text">
+      </section>
+
+      <section data-question-id="malformed" data-question-type="text">
+        <input type="text">
+      </section>
+    </form>
+  </body>
+</html>
+

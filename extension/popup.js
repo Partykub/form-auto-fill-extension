@@ -47,7 +47,8 @@ autofillButton.addEventListener("click", async () => {
       type: "RUN_AUTOFILL",
       source: "popup",
     });
-    statusElement.textContent = result.message;
+    statusElement.textContent =
+      result.message || result.error?.message || "Question extraction failed.";
   } catch {
     statusElement.textContent = "Unable to contact the form page.";
   } finally {
@@ -60,4 +61,3 @@ optionsButton.addEventListener("click", () => {
 });
 
 void refreshPageStatus();
-

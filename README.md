@@ -8,6 +8,11 @@ Chrome Extension สำหรับช่วยจับคู่คำถาม
 .
 ├── extension/
 │   ├── manifest.json
+│   ├── adapters/
+│   │   ├── core.js
+│   │   ├── google-forms.js
+│   │   ├── microsoft-forms.js
+│   │   └── registry.js
 │   ├── background.js
 │   ├── content.js
 │   ├── profile.js
@@ -107,6 +112,55 @@ PUT /api/profile
 ```
 
 `PUT` ใช้ optimistic revision และตอบ `409 PROFILE_CONFLICT` เมื่อ server revision เปลี่ยนไปแล้ว
+
+## Question Extraction
+
+Content Script เลือก adapter จาก URL และ DOM signature แล้วอ่านคำถามเฉพาะ section/page ที่กำลังแสดงอยู่
+
+ชนิดคำถามใน MVP:
+
+- `short_text`
+- `long_text`
+- `email`
+- `phone`
+- `radio`
+- `checkbox`
+- `dropdown`
+- `unsupported`
+
+ผล extraction ใช้ normalized shape:
+
+```json
+{
+  "id": "google:name",
+  "platform": "google",
+  "text": "ชื่อ-นามสกุล",
+  "description": "",
+  "type": "short_text",
+  "rawType": "text",
+  "required": true,
+  "supported": true,
+  "options": []
+}
+```
+
+Content Script messages:
+
+- `GET_PAGE_STATUS` ตรวจว่า URL และ DOM เป็น form ที่รองรับหรือไม่
+- `EXTRACT_QUESTIONS` คืน `{ platform, questions, unsupportedCount, warnings }`
+- `RUN_AUTOFILL` ยังทำ extraction และคืน summary เท่านั้นใน Phase 3
+
+Adapter รอ form render สูงสุด 8 วินาที และล้าง extraction cache หลัง DOM เปลี่ยนแบบ debounce 150ms ส่วน `fillAnswer` และ `submit` จะตอบ `FEATURE_NOT_IMPLEMENTED` จนกว่าจะทำ Phase Autofill
+
+### Manual Extraction Check
+
+หลัง Load unpacked หรือ Reload Extension:
+
+1. เปิด Google Form และ Microsoft Form ที่มีชนิดคำถามตาม MVP
+2. เปิด Extension popup แล้วกด Autofill
+3. ตรวจ summary ใน popup
+4. เรียก `EXTRACT_QUESTIONS` จาก Extension debugging console เมื่อต้องการดู payload เต็ม
+5. เปลี่ยน section แล้วรันอีกครั้งเพื่อยืนยันว่าอ่านเฉพาะหน้าปัจจุบัน
 
 ## Load Extension
 

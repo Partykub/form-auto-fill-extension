@@ -31,6 +31,10 @@
         "https://forms.microsoft.com/*"
       ],
       "js": [
+        "adapters/core.js",
+        "adapters/google-forms.js",
+        "adapters/microsoft-forms.js",
+        "adapters/registry.js",
         "content.js"
       ],
       "run_at": "document_idle"
@@ -46,4 +50,3 @@
     }
   }
 }
-
