@@ -7,7 +7,7 @@
 - [ ] Extension ติดตั้งผ่าน Chrome Developer Mode ได้
 - [ ] ผู้ใช้สร้างและแก้ไข Profile ได้
 - [ ] Extension ตรวจจับและอ่านคำถามจาก Google Forms และ Microsoft Forms ได้
-- [ ] ระบบจับคู่คำถามกับ Profile ด้วย manual mapping หรือ embedding similarity ได้
+- [ ] ระบบจับคู่คำถามกับ Profile ด้วย manual mapping หรือ question mapping similarity ได้
 - [ ] ระบบกรอกคำตอบในฟอร์มได้ถูกต้อง
 - [ ] ผู้ใช้เลือกเปิดหรือปิด auto submit ได้
 - [ ] Scheduler และ hotkey ทำงานได้
@@ -53,7 +53,7 @@
 - [x] ติดตั้งและตั้งค่า Express
 - [x] เพิ่ม middleware สำหรับ JSON, CORS และ error handling
 - [x] เพิ่ม endpoint `GET /health`
-- [x] อ่านค่า `OPENAI_API_KEY` จาก environment variable
+- [x] ตั้งค่า environment variable ที่จำเป็นสำหรับ Backend
 - [x] เพิ่มคำสั่ง run และ development ใน `package.json`
 
 **Acceptance Criteria**
@@ -166,43 +166,46 @@
 
 ---
 
-## Phase 4: Embedding and Matching
+## Phase 4: Question Mapping Engine
 
-### TASK-011: สร้าง Embedding Service
+### TASK-011: สร้าง Text Normalization และ Pattern Bank
 
-- [ ] สร้าง `embedding.service.js`
-- [ ] เชื่อมต่อ OpenAI Embedding API
-- [ ] ใช้ model `text-embedding-3-small`
-- [ ] เพิ่ม timeout, retry และ error handling
-- [ ] normalize ข้อความก่อนสร้าง embedding
-- [ ] cache profile label embeddings เพื่อ reuse
+- [ ] สร้าง text normalizer สำหรับไทยและอังกฤษ
+- [ ] ลบ required marker, เลขลำดับข้อ, punctuation และ whitespace ซ้ำ
+- [ ] รองรับคำฟุ่มเฟือย เช่น `กรุณาระบุ`, `โปรดกรอก`, `please enter`
+- [ ] ใช้ Profile `label`, `aliases` และ `key` เป็น question patterns
+- [ ] เพิ่ม default pattern/keyword rules สำหรับ `full_name`, `phone`, `email`, `province`
 
 **Acceptance Criteria**
 
-- สร้าง embedding จากข้อความได้
-- Profile label เดิมไม่เรียก API ซ้ำโดยไม่จำเป็น
-- API key อยู่เฉพาะใน Backend
+- ข้อความไทยและอังกฤษถูก normalize อย่างสม่ำเสมอ
+- Profile fields ถูกแปลงเป็น pattern bank ได้
+- ไม่มีการเรียก AI model, OpenAI API หรือ local model
 
-### TASK-012: สร้าง Similarity Service
+### TASK-012: สร้าง Deterministic Similarity Service
 
 - [ ] สร้าง `similarity.service.js`
-- [ ] implement cosine similarity
-- [ ] เปรียบเทียบ question embedding กับ profile embeddings
+- [ ] implement exact match scoring
+- [ ] implement token overlap scoring
+- [ ] implement character n-gram similarity สำหรับคำไทยและคำสั้น
+- [ ] เพิ่ม type hint scoring สำหรับ `email` และ `phone`
 - [ ] เลือก field ที่มีคะแนนสูงสุด
-- [ ] ใช้ threshold เริ่มต้น `0.75`
+- [ ] ใช้ threshold เริ่มต้น `0.72`
+- [ ] ใช้ ambiguous margin เริ่มต้น `0.08`
 - [ ] รองรับการตั้งค่า threshold
 
 **Acceptance Criteria**
 
 - Response มี `field`, `value` และ `confidence`
 - คะแนนต่ำกว่า threshold ถูกระบุว่าต้อง manual mapping
-- มี unit tests สำหรับ cosine similarity และ threshold boundary
+- คะแนนที่ใกล้กันเกินไปถูกระบุว่าต้อง manual mapping
+- มี unit tests สำหรับ token overlap, n-gram similarity และ threshold boundary
 
 ### TASK-013: สร้าง Matching API
 
 - [ ] เพิ่ม endpoint สำหรับรับรายการคำถาม
 - [ ] validate request payload
-- [ ] โหลด Profile และ cached embeddings
+- [ ] โหลด Profile จาก Backend JSON
 - [ ] match คำถามแบบ batch
 - [ ] คืนผลลัพธ์ตาม question ID
 - [ ] จำกัดขนาด request และจัดการ rate limit
@@ -215,13 +218,13 @@
 ### TASK-014: เพิ่มลำดับความสำคัญของการ Match
 
 - [ ] ตรวจ manual mapping ก่อน
-- [ ] ตรวจ exact normalized label หรือ alias
-- [ ] ใช้ embedding similarity เป็น fallback
+- [ ] ตรวจ exact normalized label, alias, pattern หรือ key
+- [ ] ใช้ rule-based similarity เป็น fallback
 - [ ] ไม่กรอกคำตอบเมื่อไม่มี match ที่มั่นใจ
 
 **Acceptance Criteria**
 
-- ลำดับคือ manual mapping > exact/alias > embedding
+- ลำดับคือ manual mapping > exact/alias/pattern > type/keyword rules > token/n-gram similarity
 - ผลลัพธ์ระบุ match source เพื่อ debug ได้
 
 ---
@@ -358,7 +361,7 @@
 
 **Acceptance Criteria**
 
-- OpenAI API key ไม่ปรากฏใน extension bundle หรือ network request จาก content script
+- ไม่มี API key หรือ secret ปรากฏใน extension bundle หรือ network request จาก content script
 - Log ไม่มีข้อมูล Profile แบบ plaintext
 
 ### TASK-024: เพิ่ม Logging และ Error Handling
@@ -381,8 +384,8 @@
 ### TASK-025: เพิ่ม Backend Tests
 
 - [ ] Unit test Profile Service
-- [ ] Unit test Embedding Service ด้วย mocked API
-- [ ] Unit test cosine similarity
+- [ ] Unit test text normalization และ pattern bank
+- [ ] Unit test token overlap และ n-gram similarity
 - [ ] Unit test matching priority และ threshold
 - [ ] Integration test Matching API
 - [ ] Test invalid payload และ error cases
@@ -409,13 +412,13 @@
 
 - [ ] ทดสอบสร้าง Profile
 - [ ] ทดสอบ exact match
-- [ ] ทดสอบ embedding match
+- [ ] ทดสอบ rule-based similarity match
 - [ ] ทดสอบ manual mapping และ reuse
 - [ ] ทดสอบ autofill ทุก input type
 - [ ] ทดสอบ hotkey
 - [ ] ทดสอบ scheduler
 - [ ] ทดสอบ auto submit ทั้ง success และ blocked case
-- [ ] ทดสอบ Backend offline และ OpenAI API error
+- [ ] ทดสอบ Backend offline และ matching error
 
 **Acceptance Criteria**
 
@@ -455,7 +458,7 @@
 ## MVP Scope Notes
 
 - Auto submit ต้องเป็น opt-in และปิดเป็นค่าเริ่มต้น
-- ควรส่งคำถามไป Backend แบบ batch เพื่อลดจำนวน OpenAI API calls
-- Manual mapping ควรทำงานได้แม้ Backend หรือ OpenAI API ใช้งานไม่ได้
+- ควรส่งคำถามไป Backend แบบ batch เพื่อลดจำนวน request
+- Manual mapping ควรทำงานได้แม้ Backend หรือ rule-based matching ใช้งานไม่ได้
 - Scheduler ของ Chrome Extension ไม่รับประกันความแม่นยำระดับวินาที
 - DOM ของ Google Forms และ Microsoft Forms เปลี่ยนได้ จึงควรแยก adapter และมี DOM fixture tests

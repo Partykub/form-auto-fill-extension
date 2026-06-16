@@ -8,7 +8,7 @@ Chrome Extension สำหรับกรอก Google Form และ Microsoft 
 
 - Profile Management
 - Auto Form Detection
-- Embedding-Based Question Matching
+- Question Mapping Engine
 - Auto Fill Answers
 - Auto Submit
 - Scheduler
@@ -43,10 +43,13 @@ Chrome Extension สำหรับกรอก Google Form และ Microsoft 
 - Node.js
 - Express
 
-## AI
+## Matching
 
-- OpenAI Embedding API
-- Model: text-embedding-3-small
+- Rule-based Question Mapping
+- Manual Mapping Memory
+- Text Normalization
+- Pattern / Alias Matching
+- Token and N-gram Similarity
 
 ## Storage
 
@@ -72,7 +75,7 @@ Chrome Extension
 
 Backend
 │
-├── Embedding Service
+├── Question Mapping Service
 ├── Similarity Service
 └── Profile Service
 ```
@@ -96,7 +99,7 @@ project/
 ├── backend/
 │   ├── src/
 │   │   ├── server.js
-│   │   ├── embedding.service.js
+│   │   ├── mapping.service.js
 │   │   ├── similarity.service.js
 │   │   └── profile.service.js
 │   │
@@ -122,9 +125,11 @@ Example
 
 ---
 
-# Embedding Strategy
+# Question Mapping Strategy
 
-Generate embeddings for profile labels.
+Match extracted form questions against profile labels, aliases, and reusable question patterns.
+
+No AI model, OpenAI API, or local ML model is required for the MVP.
 
 Example:
 
@@ -132,20 +137,23 @@ Example:
 [
   {
     "field": "full_name",
-    "label": "ชื่อ-นามสกุล"
+    "label": "ชื่อ-นามสกุล",
+    "patterns": ["ชื่อผู้สมัคร", "ชื่อจริงและนามสกุล", "full name"]
   },
   {
     "field": "phone",
-    "label": "เบอร์โทรศัพท์"
+    "label": "เบอร์โทรศัพท์",
+    "patterns": ["เบอร์ติดต่อ", "เบอร์ติดต่อกลับ", "หมายเลขโทรศัพท์", "phone", "mobile"]
   },
   {
     "field": "email",
-    "label": "อีเมล"
+    "label": "อีเมล",
+    "patterns": ["ที่อยู่อีเมล", "email", "e-mail"]
   }
 ]
 ```
 
-Store embeddings for reuse.
+Use existing Profile `aliases` as question patterns.
 
 ---
 
@@ -211,19 +219,21 @@ Extension fills answer.
 
 ---
 
-# Similarity Matching
+# Rule-Based Similarity Matching
 
 Algorithm
 
-1. Generate embedding for question
-2. Compare against profile embeddings
-3. Cosine similarity
-4. Select highest score
+1. Normalize question text
+2. Check manual mapping memory
+3. Check exact field label, alias, and key matches
+4. Apply type and keyword rules
+5. Score with token overlap and character n-gram similarity
+6. Select highest score when confidence is high enough
 
 Threshold
 
 ```txt
-0.75
+0.72
 ```
 
 ---
@@ -374,7 +384,7 @@ Phase 1
 
 - Google Form
 - Profile Management
-- Embedding Matching
+- Question Mapping Engine
 - Auto Fill
 - Auto Submit
 
@@ -396,7 +406,7 @@ Phase 3
 
 - Chrome Extension
 - Backend API
-- Embedding Matching
+- Question Mapping Engine
 - Google Form Autofill
 - Auto Submit
 - Documentation
