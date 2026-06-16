@@ -13,6 +13,7 @@
     "https://docs.google.com/forms/*",
     "https://forms.office.com/*",
     "https://forms.microsoft.com/*",
+    "https://forms.cloud.microsoft/*",
     "http://localhost:3000/*"
   ],
   "background": {
@@ -28,7 +29,8 @@
       "matches": [
         "https://docs.google.com/forms/*",
         "https://forms.office.com/*",
-        "https://forms.microsoft.com/*"
+        "https://forms.microsoft.com/*",
+        "https://forms.cloud.microsoft/*"
       ],
       "js": [
         "adapters/core.js",

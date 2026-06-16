@@ -115,6 +115,105 @@ test("Microsoft adapter extracts current visible MVP questions and warnings", as
   dom.window.close();
 });
 
+test("Microsoft adapter supports forms.cloud.microsoft preview markup", async () => {
+  const dom = await createExtensionDom({
+    html: `
+      <main>
+        <section>
+          <h1>แบบสำรวจการประเมินผลหลักสูตร</h1>
+          <div id="q1-title">1. คุณพอใจกับความรู้ที่คุณได้รับจากหลักสูตรเพียงใด</div>
+          <div role="radiogroup" aria-labelledby="q1-title" aria-required="true">
+            <div role="radio" aria-label="พอใจมาก" data-value="พอใจมาก"></div>
+            <div role="radio" aria-label="พอใจ" data-value="พอใจ"></div>
+            <div role="radio" aria-label="เฉยๆ" data-value="เฉยๆ"></div>
+          </div>
+          <div id="q2-title">2. คุณรู้สึกว่าคุณได้รับผลการเรียนรู้ที่ต้องการหรือไม่</div>
+          <div role="radiogroup" aria-labelledby="q2-title">
+            <div role="radio" aria-label="ใช่" data-value="ใช่"></div>
+            <div role="radio" aria-label="ไม่" data-value="ไม่"></div>
+          </div>
+        </section>
+      </main>
+    `,
+    url: "https://forms.cloud.microsoft/Pages/DesignPageV2.aspx?origin=shell",
+  });
+  const adapter = dom.window.FormAutoFill.adapterRegistry.createAdapter(
+    dom.window.document,
+    dom.window.location,
+  );
+
+  await adapter.waitForReady();
+  const result = adapter.extractQuestions();
+
+  assert.equal(adapter.platform, "microsoft");
+  assert.equal(result.questions.length, 2);
+  assert.equal(
+    result.questions[0].text,
+    "1. คุณพอใจกับความรู้ที่คุณได้รับจากหลักสูตรเพียงใด",
+  );
+  assert.equal(result.questions[0].type, "radio");
+  assert.equal(result.questions[0].required, true);
+  assert.deepEqual(
+    Array.from(result.questions[0].options, (option) => option.label),
+    ["พอใจมาก", "พอใจ", "เฉยๆ"],
+  );
+  assert.equal(
+    result.questions.some((question) => question.text === "แบบสำรวจการประเมินผลหลักสูตร"),
+    false,
+  );
+  dom.window.close();
+});
+
+test("Microsoft adapter uses body fallback and nearby text for preview radiogroups", async () => {
+  const dom = await createExtensionDom({
+    html: `
+      <div>
+        <h1>แบบสำรวจการประเมินผลหลักสูตร</h1>
+        <section>
+          <p>1. คุณพอใจกับความรู้ที่คุณได้รับจากหลักสูตรเพียงใด</p>
+          <div role="radiogroup" aria-required="true">
+            <div role="radio" aria-label="พอใจมาก" data-value="พอใจมาก"></div>
+            <div role="radio" aria-label="พอใจ" data-value="พอใจ"></div>
+          </div>
+        </section>
+        <section>
+          <p>2. คุณรู้สึกว่าคุณได้รับผลการเรียนรู้ที่ต้องการหรือไม่</p>
+          <div role="radiogroup">
+            <div role="radio" aria-label="ใช่" data-value="ใช่"></div>
+            <div role="radio" aria-label="ไม่" data-value="ไม่"></div>
+          </div>
+        </section>
+      </div>
+    `,
+    url: "https://forms.cloud.microsoft/Pages/DesignPageV2.aspx?origin=shell",
+  });
+  const adapter = dom.window.FormAutoFill.adapterRegistry.createAdapter(
+    dom.window.document,
+    dom.window.location,
+  );
+
+  await adapter.waitForReady();
+  const result = adapter.extractQuestions();
+
+  assert.equal(adapter.root, dom.window.document.body);
+  assert.equal(result.questions.length, 2);
+  assert.equal(
+    result.questions[0].text,
+    "1. คุณพอใจกับความรู้ที่คุณได้รับจากหลักสูตรเพียงใด",
+  );
+  assert.equal(result.questions[0].type, "radio");
+  assert.equal(result.questions[0].required, true);
+  assert.deepEqual(
+    Array.from(result.questions[0].options, (option) => option.label),
+    ["พอใจมาก", "พอใจ"],
+  );
+  assert.equal(
+    result.questions.some((question) => question.text === "แบบสำรวจการประเมินผลหลักสูตร"),
+    false,
+  );
+  dom.window.close();
+});
+
 test("registry rejects unknown pages and recognizes supported locations before render", async () => {
   const unknownDom = await createExtensionDom({
     url: "https://example.com/form",
@@ -152,6 +251,17 @@ test("registry rejects unknown pages and recognizes supported locations before r
     false,
   );
   googleDom.window.close();
+
+  const microsoftCloudDom = await createExtensionDom({
+    url: "https://forms.cloud.microsoft/Pages/DesignPageV2.aspx?origin=shell",
+  });
+  assert.equal(
+    microsoftCloudDom.window.FormAutoFill.adapterRegistry.isSupportedLocation(
+      microsoftCloudDom.window.location,
+    ),
+    true,
+  );
+  microsoftCloudDom.window.close();
 });
 
 test("waitForReady supports dynamically rendered forms", async () => {

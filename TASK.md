@@ -109,7 +109,7 @@
 
 ## Phase 3: Question Extraction
 
-> Implementation และ automated DOM fixture tests เสร็จแล้ว (`27/27` tests ผ่าน) แต่ยังรอ manual verification บน Google Forms และ Microsoft Forms จริงผ่าน Chrome ก่อนปิด Phase 3
+> Implementation และ automated DOM fixture tests เสร็จแล้ว (`28/28` tests ผ่าน) แต่ยังรอ manual verification บน Google Forms และ Microsoft Forms จริงผ่าน Chrome ก่อนปิด Phase 3
 
 ### TASK-007: สร้าง Form Adapter interface
 

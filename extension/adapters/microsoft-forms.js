@@ -7,11 +7,17 @@
     '[data-form-root="microsoft"]',
     '[data-automation-id="formContainer"]',
     'main form',
+    'main [role="form"]',
+    'main [role="main"]',
+    "main",
   ];
   const QUESTION_SELECTORS = [
     '[data-automation-id="questionItem"]',
     "[data-question-id]",
     '[data-question-type][role="group"]',
+    '[role="group"][aria-labelledby]',
+    '[role="radiogroup"][aria-labelledby]',
+    '[role="radiogroup"]',
   ];
   const TITLE_SELECTORS = [
     '[data-automation-id="questionTitle"]',
@@ -52,18 +58,33 @@
     }
 
     static supportsLocation(location) {
-      return ["forms.office.com", "forms.microsoft.com"].includes(
+      return ["forms.office.com", "forms.microsoft.com", "forms.cloud.microsoft"].includes(
         location?.hostname,
       );
     }
 
+    static supportsBodyFallback(location) {
+      return location?.hostname === "forms.cloud.microsoft";
+    }
+
     async waitForReady({ timeoutMs = 8000 } = {}) {
+      if (MicrosoftFormsAdapter.supportsBodyFallback(this.location)) {
+        this.root =
+          core.queryFirst(this.document, ROOT_SELECTORS) || this.document.body;
+        return this.root;
+      }
+
       this.root = await core.waitForElement(this.document, ROOT_SELECTORS, timeoutMs);
       return this.root;
     }
 
     extractQuestions() {
-      const root = this.root || core.queryFirst(this.document, ROOT_SELECTORS);
+      const root =
+        this.root ||
+        core.queryFirst(this.document, ROOT_SELECTORS) ||
+        (MicrosoftFormsAdapter.supportsBodyFallback(this.location)
+          ? this.document.body
+          : null);
       if (!root) {
         throw new core.FormAdapterError(
           "FORM_NOT_READY",
@@ -114,6 +135,7 @@
       const text =
         core.getVisibleText(titleElement) ||
         core.getAccessibleText(container) ||
+        this.findNearbyQuestionText(container) ||
         core.getAccessibleText(initialControl);
       if (!text) {
         throw new Error("Question title was not found");
@@ -160,6 +182,65 @@
       ).toLowerCase();
     }
 
+    findNearbyQuestionText(container) {
+      if (!this.canUseNearbyQuestionText(container)) {
+        return "";
+      }
+
+      const labelledByText = core.getAccessibleText(container);
+      if (labelledByText) {
+        return labelledByText;
+      }
+
+      let sibling = container.previousElementSibling;
+      while (sibling) {
+        const text = core.getVisibleText(sibling);
+        if (text && !this.looksLikeOptionText(sibling)) {
+          return text;
+        }
+        sibling = sibling.previousElementSibling;
+      }
+
+      const parent = container.parentElement;
+      if (!parent) {
+        return "";
+      }
+
+      const candidates = [
+        ...parent.querySelectorAll(
+          '[id], [role="heading"], [data-automation-id="questionTitle"]',
+        ),
+      ];
+      const candidate = candidates.find(
+        (element) =>
+          element !== container &&
+          !container.contains(element) &&
+          core.getVisibleText(element) &&
+          !this.looksLikeOptionText(element),
+      );
+
+      return core.getVisibleText(candidate);
+    }
+
+    canUseNearbyQuestionText(container) {
+      if (
+        container.getAttribute("data-automation-id") ||
+        container.getAttribute("data-question-id") ||
+        container.getAttribute("data-question-type")
+      ) {
+        return false;
+      }
+
+      return ["group", "radiogroup"].includes(container.getAttribute("role"));
+    }
+
+    looksLikeOptionText(element) {
+      return Boolean(
+        element.matches?.('[role="radio"], [role="checkbox"], label') ||
+          element.querySelector?.('[role="radio"], [role="checkbox"], input[type="radio"], input[type="checkbox"]'),
+      );
+    }
+
     getQuestionType(container, text, rawType) {
       if (RAW_TYPE_MAP[rawType]) {
         if (RAW_TYPE_MAP[rawType] === core.QUESTION_TYPES.SHORT_TEXT) {
@@ -181,6 +262,10 @@
 
       const radios = container.querySelectorAll('input[type="radio"], [role="radio"]');
       if (radios.length > 0) {
+        return core.QUESTION_TYPES.RADIO;
+      }
+
+      if (container.getAttribute("role") === "radiogroup") {
         return core.QUESTION_TYPES.RADIO;
       }
 
