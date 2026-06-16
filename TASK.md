@@ -109,14 +109,14 @@
 
 ## Phase 3: Question Extraction
 
-> Implementation และ automated DOM fixture tests เสร็จแล้ว (`28/28` tests ผ่าน) แต่ยังรอ manual verification บน Google Forms และ Microsoft Forms จริงผ่าน Chrome ก่อนปิด Phase 3
+> Phase 3 ผ่านแล้ว: automated tests `29/29` ผ่าน, manual Google Forms ได้ `Extracted 8 questions (0 unsupported)`, manual Microsoft Forms ได้ `Extracted 9 questions (0 unsupported)`. Phase นี้ทำเฉพาะ extraction; การกรอกและ submit จะทำใน Phase 5
 
 ### TASK-007: สร้าง Form Adapter interface
 
-- [ ] กำหนด interface กลางสำหรับตรวจจับฟอร์ม อ่านคำถาม กรอกคำตอบ และ submit
-- [ ] กำหนด normalized question model เช่น `id`, `text`, `type`, `required` และ element reference
-- [ ] เลือก adapter จาก hostname หรือ DOM ของหน้า
-- [ ] รองรับ error เมื่อหน้าไม่ใช่ฟอร์มที่รู้จัก
+- [x] กำหนด interface กลางสำหรับตรวจจับฟอร์ม อ่านคำถาม กรอกคำตอบ และ submit
+- [x] กำหนด normalized question model เช่น `id`, `text`, `type`, `required` และ element reference
+- [x] เลือก adapter จาก hostname หรือ DOM ของหน้า
+- [x] รองรับ error เมื่อหน้าไม่ใช่ฟอร์มที่รู้จัก
 
 **Acceptance Criteria**
 
@@ -125,11 +125,11 @@
 
 ### TASK-008: รองรับ Google Forms
 
-- [ ] ตรวจจับหน้า Google Form
-- [ ] อ่านข้อความคำถาม
-- [ ] ตรวจจับชนิด input ที่รองรับ
-- [ ] เชื่อมคำถามกับ element ที่ต้องกรอก
-- [ ] รองรับหน้า form ที่ render แบบ dynamic
+- [x] ตรวจจับหน้า Google Form
+- [x] อ่านข้อความคำถาม
+- [x] ตรวจจับชนิด input ที่รองรับ
+- [x] เชื่อมคำถามกับ element ที่ต้องกรอก
+- [x] รองรับหน้า form ที่ render แบบ dynamic
 
 **Acceptance Criteria**
 
@@ -138,11 +138,11 @@
 
 ### TASK-009: รองรับ Microsoft Forms
 
-- [ ] ตรวจจับหน้า Microsoft Form
-- [ ] อ่านข้อความคำถาม
-- [ ] ตรวจจับชนิด input ที่รองรับ
-- [ ] เชื่อมคำถามกับ element ที่ต้องกรอก
-- [ ] รองรับหน้า form ที่ render แบบ dynamic
+- [x] ตรวจจับหน้า Microsoft Form
+- [x] อ่านข้อความคำถาม
+- [x] ตรวจจับชนิด input ที่รองรับ
+- [x] เชื่อมคำถามกับ element ที่ต้องกรอก
+- [x] รองรับหน้า form ที่ render แบบ dynamic
 
 **Acceptance Criteria**
 
@@ -151,13 +151,13 @@
 
 ### TASK-010: กำหนดชนิดคำตอบใน MVP
 
-- [ ] รองรับ short text
-- [ ] รองรับ long text
-- [ ] รองรับ email และ phone input
-- [ ] รองรับ radio button
-- [ ] รองรับ checkbox
-- [ ] รองรับ dropdown
-- [ ] ระบุ unsupported field โดยไม่ทำให้ autofill ทั้งหน้าล้มเหลว
+- [x] รองรับ short text
+- [x] รองรับ long text
+- [x] รองรับ email และ phone input
+- [x] รองรับ radio button
+- [x] รองรับ checkbox
+- [x] รองรับ dropdown
+- [x] ระบุ unsupported field โดยไม่ทำให้ autofill ทั้งหน้าล้มเหลว
 
 **Acceptance Criteria**
 

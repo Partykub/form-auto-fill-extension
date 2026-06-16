@@ -117,6 +117,13 @@ PUT /api/profile
 
 Content Script เลือก adapter จาก URL และ DOM signature แล้วอ่านคำถามเฉพาะ section/page ที่กำลังแสดงอยู่
 
+Phase 3 verification:
+
+- Automated tests: `29/29` pass
+- Manual Google Forms: `Extracted 8 questions (0 unsupported)`
+- Manual Microsoft Forms: `Extracted 9 questions (0 unsupported)`
+- Phase นี้ยังไม่กรอกหรือ submit form จริง
+
 ชนิดคำถามใน MVP:
 
 - `short_text`
