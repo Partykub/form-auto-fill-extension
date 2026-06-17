@@ -8,6 +8,7 @@ import {
   ProfileValidationError,
 } from "./profile.errors.js";
 import { createProfileService } from "./profile.service.js";
+import { createMappingService } from "./mapping.service.js";
 
 const DEFAULT_ALLOWED_ORIGINS = [
   /^chrome-extension:\/\//,
@@ -30,6 +31,7 @@ function isOriginAllowed(origin, configuredOrigin) {
 export function createApp({
   extensionOrigin = process.env.EXTENSION_ORIGIN,
   profileService = createProfileService(),
+  mappingService,
 } = {}) {
   const app = express();
 
@@ -65,6 +67,67 @@ export function createApp({
     const { profile, expectedRevision } = request.body ?? {};
     const savedProfile = await profileService.save(profile, expectedRevision);
     response.json({ profile: savedProfile });
+  });
+
+  app.post("/api/v1/match", async (request, response) => {
+    const { questions } = request.body ?? {};
+
+    if (!Array.isArray(questions) || questions.length === 0) {
+      return response.status(400).json({
+        error: {
+          code: "INVALID_REQUEST",
+          message: "questions must be a non-empty array",
+        },
+      });
+    }
+
+    if (questions.length > 100) {
+      return response.status(400).json({
+        error: {
+          code: "REQUEST_TOO_LARGE",
+          message: "Maximum 100 questions per request",
+        },
+      });
+    }
+
+    // Validate each question has required fields
+    for (const question of questions) {
+      if (!question?.id || !question?.text) {
+        return response.status(400).json({
+          error: {
+            code: "INVALID_QUESTION",
+            message: `Each question must have id and text (failed at question: ${question?.id})`,
+          },
+        });
+      }
+    }
+
+    try {
+      const profile = await profileService.get();
+      const ms =
+        mappingService || createMappingService({ profileService });
+
+      const matches = await ms.matchQuestions(questions, profile);
+
+      return response.json({ matches });
+    } catch (error) {
+      if (error instanceof ProfileNotFoundError) {
+        return response.status(404).json({
+          error: {
+            code: "PROFILE_NOT_FOUND",
+            message: "Profile not found. Create a profile first.",
+          },
+        });
+      }
+
+      console.error("Matching error:", error.message);
+      return response.status(500).json({
+        error: {
+          code: "MATCHING_ERROR",
+          message: "Failed to match questions",
+        },
+      });
+    }
   });
 
   app.use((_request, response) => {
