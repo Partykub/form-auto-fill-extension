@@ -170,11 +170,11 @@
 
 ### TASK-011: สร้าง Text Normalization และ Pattern Bank
 
-- [ ] สร้าง text normalizer สำหรับไทยและอังกฤษ
-- [ ] ลบ required marker, เลขลำดับข้อ, punctuation และ whitespace ซ้ำ
-- [ ] รองรับคำฟุ่มเฟือย เช่น `กรุณาระบุ`, `โปรดกรอก`, `please enter`
-- [ ] ใช้ Profile `label`, `aliases` และ `key` เป็น question patterns
-- [ ] เพิ่ม default pattern/keyword rules สำหรับ `full_name`, `phone`, `email`, `province`
+- [x] สร้าง text normalizer สำหรับไทยและอังกฤษ
+- [x] ลบ required marker, เลขลำดับข้อ, punctuation และ whitespace ซ้ำ
+- [x] รองรับคำฟุ่มเฟือย เช่น `กรุณาระบุ`, `โปรดกรอก`, `please enter`
+- [x] ใช้ Profile `label`, `aliases` และ `key` เป็น question patterns
+- [x] เพิ่ม default pattern/keyword rules สำหรับ `full_name`, `phone`, `email`, `province`
 
 **Acceptance Criteria**
 
@@ -184,15 +184,15 @@
 
 ### TASK-012: สร้าง Deterministic Similarity Service
 
-- [ ] สร้าง `similarity.service.js`
-- [ ] implement exact match scoring
-- [ ] implement token overlap scoring
-- [ ] implement character n-gram similarity สำหรับคำไทยและคำสั้น
-- [ ] เพิ่ม type hint scoring สำหรับ `email` และ `phone`
-- [ ] เลือก field ที่มีคะแนนสูงสุด
-- [ ] ใช้ threshold เริ่มต้น `0.72`
-- [ ] ใช้ ambiguous margin เริ่มต้น `0.08`
-- [ ] รองรับการตั้งค่า threshold
+- [x] สร้าง `similarity.service.js`
+- [x] implement exact match scoring
+- [x] implement token overlap scoring
+- [x] implement character n-gram similarity สำหรับคำไทยและคำสั้น
+- [x] เพิ่ม type hint scoring สำหรับ `email` และ `phone`
+- [x] เลือก field ที่มีคะแนนสูงสุด
+- [x] ใช้ threshold เริ่มต้น `0.72`
+- [x] ใช้ ambiguous margin เริ่มต้น `0.08`
+- [x] รองรับการตั้งค่า threshold
 
 **Acceptance Criteria**
 
@@ -203,12 +203,12 @@
 
 ### TASK-013: สร้าง Matching API
 
-- [ ] เพิ่ม endpoint สำหรับรับรายการคำถาม
-- [ ] validate request payload
-- [ ] โหลด Profile จาก Backend JSON
-- [ ] match คำถามแบบ batch
-- [ ] คืนผลลัพธ์ตาม question ID
-- [ ] จำกัดขนาด request และจัดการ rate limit
+- [x] เพิ่ม endpoint สำหรับรับรายการคำถาม
+- [x] validate request payload
+- [x] โหลด Profile จาก Backend JSON
+- [x] match คำถามแบบ batch
+- [x] คืนผลลัพธ์ตาม question ID
+- [x] จำกัดขนาด request และจัดการ rate limit
 
 **Acceptance Criteria**
 
@@ -217,10 +217,10 @@
 
 ### TASK-014: เพิ่มลำดับความสำคัญของการ Match
 
-- [ ] ตรวจ manual mapping ก่อน
-- [ ] ตรวจ exact normalized label, alias, pattern หรือ key
-- [ ] ใช้ rule-based similarity เป็น fallback
-- [ ] ไม่กรอกคำตอบเมื่อไม่มี match ที่มั่นใจ
+- [x] ตรวจ manual mapping ก่อน
+- [x] ตรวจ exact normalized label, alias, pattern หรือ key
+- [x] ใช้ rule-based similarity เป็น fallback
+- [x] ไม่กรอกคำตอบเมื่อไม่มี match ที่มั่นใจ
 
 **Acceptance Criteria**
 

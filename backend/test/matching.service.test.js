@@ -14,29 +14,29 @@ function createTestProfile() {
     fields: [
       {
         key: "full_name",
-        label: "ชื่-นามสกุล",
-        aliases: ["ชื่-นามสกุล"],
+        label: "ชื่อ-นามสกุล",
+        aliases: ["ชื่อ-นามสกุล"],
         value: "John Doe",
         isDefault: true,
       },
       {
         key: "phone",
-        label: "เบอรืโทรศัพท",
-        aliases: ["เบอรืตดตอ"],
+        label: "เบอร์โทรศัพท์",
+        aliases: ["เบอร์ติดต่อ"],
         value: "0812345678",
         isDefault: true,
       },
       {
         key: "email",
-        label: "อเมล",
-        aliases: ["ท่อยอูอเมล"],
+        label: "อีเมล",
+        aliases: ["ที่อยู่อีเมล"],
         value: "john@example.com",
         isDefault: true,
       },
       {
         key: "province",
-        label: "จหวด",
-        aliases: ["จหวดทออาศยอย"],
+        label: "จังหวัด",
+        aliases: ["จังหวัดที่อาศัยอยู่"],
         value: "Bangkok",
         isDefault: true,
       },
@@ -80,7 +80,7 @@ test("exact match via pattern bank", async () => {
   };
 
   const result = await service.matchQuestion(
-    { id: "q1", text: "ชื่-นามสกุล" },
+    { id: "q1", text: "ชื่อ-นามสกุล" },
     profile,
   );
 
@@ -126,7 +126,7 @@ test("manual mapping overrides normal matching", async () => {
   const service = createMappingService({
     patternBank: bank,
     manualMappings: [
-      { question: "ชื่-นามสกุล", field: "full_name", value: "Jane Smith" },
+      { question: "ชื่อ-นามสกุล", field: "full_name", value: "Jane Smith" },
     ],
   });
 
@@ -164,7 +164,7 @@ test("manual mapping overrides normal matching", async () => {
   };
 
   const result = await service.matchQuestion(
-    { id: "q1", text: "ชื่-นามสกุล" },
+    { id: "q1", text: "ชื่อ-นามสกุล" },
     profile,
   );
 
@@ -195,8 +195,8 @@ test("batch matching returns results for all questions", async () => {
   };
 
   const questions = [
-    { id: "q1", text: "ชื่-นามสกุล" },
-    { id: "q2", text: "เบอรืโทรศัพท" },
+    { id: "q1", text: "ชื่อ-นามสกุล" },
+    { id: "q2", text: "เบอร์โทรศัพท์" },
     { id: "q3", text: "unknown" },
   ];
 
@@ -234,8 +234,8 @@ test("batch matching handles individual failures gracefully", async () => {
   };
 
   const questions = [
-    { id: "q1", text: "ชื่-นามสกุล" },
-    { id: "q2", text: "เบอรืโทรศัพท" },
+    { id: "q1", text: "ชื่อ-นามสกุล" },
+    { id: "q2", text: "เบอร์โทรศัพท์" },
   ];
 
   const results = await service.matchQuestions(questions, profile);
@@ -286,7 +286,7 @@ test("similarity service is used for non-exact matches", async () => {
   };
 
   const result = await service.matchQuestion(
-    { id: "q1", text: "ชื่-นามสกุล" },
+    { id: "q1", text: "ชื่อ-นามสกุล" },
     profile,
   );
 

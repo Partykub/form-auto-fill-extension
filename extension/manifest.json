@@ -37,6 +37,7 @@
         "adapters/google-forms.js",
         "adapters/microsoft-forms.js",
         "adapters/registry.js",
+        "fill-engine.js",
         "content.js"
       ],
       "run_at": "document_idle"

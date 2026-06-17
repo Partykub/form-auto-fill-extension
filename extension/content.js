@@ -5,6 +5,7 @@
   let adapter;
   let adapterReady = false;
   let extractionCache;
+  let autofillRunning = false;
   let stopObserving = () => {};
 
   function serializeError(error) {
@@ -61,6 +62,91 @@
     return extractionCache;
   }
 
+  async function startAutofill() {
+    autofillRunning = true;
+    try {
+      const extraction = await extractQuestions({ force: true });
+      const readyAdapter = await getReadyAdapter();
+
+      if (!extraction.ok) {
+        return extraction;
+      }
+
+      const supportedQuestions = extraction.questions.filter(
+        (q) => q.supported,
+      );
+
+      if (supportedQuestions.length === 0) {
+        return {
+          ok: true,
+          platform: extraction.platform,
+          questions: [],
+          unsupportedCount: extraction.unsupportedCount,
+          warnings: extraction.warnings,
+          autofill: {
+            filled: 0,
+            skipped: 0,
+            failed: 0,
+            message: "No supported questions to autofill.",
+          },
+        };
+      }
+
+      const backendUrl = await getBackendUrl();
+      const matchResponse = await chrome.runtime.sendMessage({
+        type: "MATCH_QUESTIONS",
+        questions: supportedQuestions,
+        backendUrl,
+      });
+
+      if (!matchResponse?.ok) {
+        return {
+          ...extraction,
+          autofill: {
+            filled: 0,
+            skipped: 0,
+            failed: 0,
+            error: matchResponse.error || {
+              code: "MATCH_FAILED",
+              message: "Failed to match questions",
+            },
+          },
+        };
+      }
+
+      const questionBindings = new Map(
+        supportedQuestions.map((question) => [
+          question.id,
+          readyAdapter.bindings.get(question.id) || null,
+        ]),
+      );
+
+      const fillResult = await namespace.fillEngine.fillAll(
+        supportedQuestions,
+        matchResponse.matches,
+        questionBindings,
+      );
+
+      return {
+        ...extraction,
+        autofill: fillResult,
+      };
+    } finally {
+      autofillRunning = false;
+    }
+  }
+
+  async function getBackendUrl() {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(
+        { backendUrl: "http://localhost:3000" },
+        (result) => {
+          resolve(result.backendUrl || "http://localhost:3000");
+        },
+      );
+    });
+  }
+
   async function handleMessage(message) {
     if (message?.type === "GET_PAGE_STATUS") {
       return { ok: true, ...getPageStatus() };
@@ -77,6 +163,19 @@
         started: true,
         message: `Extracted ${result.questions.length} questions (${result.unsupportedCount} unsupported).`,
       };
+    }
+
+    if (message?.type === "START_AUTOFILL") {
+      if (autofillRunning) {
+        return {
+          ok: false,
+          error: {
+            code: "AUTOFILL_IN_PROGRESS",
+            message: "Autofill is already running",
+          },
+        };
+      }
+      return startAutofill();
     }
 
     return serializeError(
@@ -102,4 +201,12 @@
       extractionCache = null;
     },
   };
+
+  if (!namespace.fillEngine) {
+    namespace.fillEngine = {
+      fillAll() {
+        return { filled: 0, skipped: 0, failed: 0, message: "Fill engine not loaded" };
+      },
+    };
+  }
 })(globalThis);

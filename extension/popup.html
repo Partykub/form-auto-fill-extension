@@ -50,14 +50,186 @@
         min-height: 42px;
         color: #536078;
       }
+
+      /* Backend Status */
+      #backend-status {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: #edf1fb;
+        color: #33456f;
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 12px;
+      }
+
+      #backend-status[data-status="online"] {
+        background: #e7f7ee;
+        color: #17633a;
+      }
+
+      #backend-status[data-status="offline"] {
+        background: #ffeded;
+        color: #922323;
+      }
+
+      #backend-status[data-status="checking"] {
+        background: #fff5d9;
+        color: #815b00;
+      }
+
+      /* Loading */
+      #loading {
+        display: none;
+        align-items: center;
+        gap: 10px;
+        padding: 12px;
+        margin-bottom: 12px;
+        border-radius: 8px;
+        background: #edf1fb;
+        color: #33456f;
+        font-size: 14px;
+      }
+
+      #loading.visible {
+        display: flex;
+      }
+
+      .spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid #2952cc33;
+        border-top-color: #2952cc;
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+        flex-shrink: 0;
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+
+      /* Result Summary */
+      #result {
+        display: none;
+        padding: 12px;
+        margin-bottom: 12px;
+        border-radius: 8px;
+        background: #e7f7ee;
+        color: #17633a;
+        font-size: 14px;
+      }
+
+      #result.visible {
+        display: block;
+      }
+
+      #result .stat {
+        display: flex;
+        justify-content: space-between;
+        padding: 2px 0;
+      }
+
+      #result .stat .label {
+        font-weight: 600;
+      }
+
+      #result.error {
+        background: #ffeded;
+        color: #922323;
+      }
+
+      /* Auto Submit Toggle */
+      .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid #dce1ec;
+        font-size: 13px;
+        color: #536078;
+      }
+
+      .toggle-switch {
+        position: relative;
+        width: 36px;
+        height: 20px;
+        flex-shrink: 0;
+      }
+
+      .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .toggle-slider {
+        position: absolute;
+        inset: 0;
+        background: #a8b0c2;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      .toggle-slider::before {
+        content: "";
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        left: 2px;
+        top: 2px;
+        background: white;
+        border-radius: 50%;
+        transition: transform 0.2s;
+      }
+
+      .toggle-switch input:checked + .toggle-slider {
+        background: #2952cc;
+      }
+
+      .toggle-switch input:checked + .toggle-slider::before {
+        transform: translateX(16px);
+      }
     </style>
   </head>
   <body>
     <h1>Form Auto Filler</h1>
+    <span id="backend-status" data-status="checking">Checking...</span>
     <p id="status">Checking this page...</p>
+
+    <div id="loading">
+      <div class="spinner"></div>
+      <span>กำลังกรอกข้อมูล...</span>
+    </div>
+
+    <div id="result">
+      <div class="stat">
+        <span class="label">กรอกสำเร็จ:</span>
+        <span id="filled-count">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">ข้าม:</span>
+        <span id="skipped-count">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">ล้มเหลว:</span>
+        <span id="failed-count">0</span>
+      </div>
+    </div>
+
     <button id="autofill" type="button" disabled>Autofill</button>
     <button id="options" class="secondary" type="button">Manage Profile</button>
+
+    <div class="toggle-row">
+      <span>Auto Submit (experimental)</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="auto-submit-toggle">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
     <script src="popup.js"></script>
   </body>
 </html>
-

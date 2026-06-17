@@ -17,6 +17,7 @@ export async function createExtensionDom({
   html = "<!doctype html><html><body></body></html>",
   url = "https://example.com/",
   loadContentScript = false,
+  loadFillEngine = false,
 } = {}) {
   const dom = new JSDOM(html, {
     url,
@@ -39,6 +40,11 @@ export async function createExtensionDom({
     dom.window.eval(source);
   }
 
+  if (loadFillEngine) {
+    const source = await readFile(path.join(extensionDirectory, "fill-engine.js"), "utf8");
+    dom.window.eval(source);
+  }
+
   if (loadContentScript) {
     const source = await readFile(path.join(extensionDirectory, "content.js"), "utf8");
     dom.window.eval(source);
@@ -52,4 +58,3 @@ export async function sendContentMessage(window, message) {
     window.__messageListener(message, {}, resolve);
   });
 }
-

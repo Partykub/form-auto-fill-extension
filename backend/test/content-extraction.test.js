@@ -98,3 +98,57 @@ test("content script invalidates cached questions after a debounced DOM change",
   assert.equal(refreshed.questions.length, 2);
   dom.window.close();
 });
+
+test("start autofill fills supported Google Form inputs using extracted bindings", async () => {
+  const dom = await createExtensionDom({
+    html: `
+      <form data-google-form>
+        <section data-question-id="name" data-question-type="text">
+          <div data-question-title>ชื่อ นามสกุล</div>
+          <input type="text">
+        </section>
+        <section data-question-id="email" data-question-type="text">
+          <div data-question-title>Email</div>
+          <input type="email">
+        </section>
+      </form>
+    `,
+    url: "https://docs.google.com/forms/d/e/example/viewform",
+    loadFillEngine: true,
+    loadContentScript: true,
+  });
+
+  dom.window.chrome.storage = {
+    local: {
+      get(_defaults, callback) {
+        callback({ backendUrl: "http://localhost:3000" });
+      },
+    },
+  };
+  dom.window.chrome.runtime.sendMessage = async (message) => {
+    assert.equal(message.type, "MATCH_QUESTIONS");
+    return {
+      ok: true,
+      matches: [
+        { field: "fullName", value: "Party Kub" },
+        { field: "email", value: "party@example.com" },
+      ],
+    };
+  };
+
+  const result = await sendContentMessage(dom.window, {
+    type: "START_AUTOFILL",
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.autofill.filled, 2);
+  assert.equal(
+    dom.window.document.querySelector('section[data-question-id="name"] input').value,
+    "Party Kub",
+  );
+  assert.equal(
+    dom.window.document.querySelector('section[data-question-id="email"] input').value,
+    "party@example.com",
+  );
+  dom.window.close();
+});

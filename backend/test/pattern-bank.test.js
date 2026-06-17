@@ -12,29 +12,29 @@ function createTestProfile(fields) {
     fields: fields || [
       {
         key: "full_name",
-        label: "ชื่-นามสกุล",
-        aliases: ["ชื่-นามสกุล"],
+        label: "ชื่อ-นามสกุล",
+        aliases: ["ชื่อ-นามสกุล"],
         value: "John Doe",
         isDefault: true,
       },
       {
         key: "phone",
-        label: "เบอรืโทรศัพท",
-        aliases: ["เบอรืตดตอ"],
+        label: "เบอร์โทรศัพท์",
+        aliases: ["เบอร์ติดต่อ"],
         value: "0812345678",
         isDefault: true,
       },
       {
         key: "email",
-        label: "อเมล",
-        aliases: ["ท่อยอูอเมล"],
+        label: "อีเมล",
+        aliases: ["ที่อยู่อีเมล"],
         value: "john@example.com",
         isDefault: true,
       },
       {
         key: "province",
-        label: "จหวด",
-        aliases: ["จหวดทออาศยอย"],
+        label: "จังหวัด",
+        aliases: ["จังหวัดที่อาศัยอยู่"],
         value: "Bangkok",
         isDefault: true,
       },
@@ -49,11 +49,11 @@ test("creates pattern bank from default profile", () => {
 
   assert.ok(patterns.length > 0, "Should have patterns");
   assert.ok(
-    patterns.some((p) => p.includes("ชื่")),
+    patterns.some((p) => p.includes("ชื่อ")),
     "Should contain full_name label",
   );
   assert.ok(
-    patterns.some((p) => p.includes("เบอร")),
+    patterns.some((p) => p.includes("เบอร์")),
     "Should contain phone label",
   );
 });
@@ -88,8 +88,8 @@ test("hasPattern returns true for known patterns", () => {
   const bank = createPatternBank(profile);
 
   // Use normalized forms
-  assert.ok(bank.hasPattern(normalizeText("ชื่-นามสกุล")));
-  assert.ok(bank.hasPattern(normalizeText("เบอรืโทรศัพท")));
+  assert.ok(bank.hasPattern(normalizeText("ชื่อ-นามสกุล")));
+  assert.ok(bank.hasPattern(normalizeText("เบอร์โทรศัพท์")));
 });
 
 test("hasPattern returns false for unknown patterns", () => {

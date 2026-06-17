@@ -86,7 +86,7 @@ API:
 ```
 
 **Test cases:**
-- "กรุณาระบุชื่อ-นามสกุล" → "ชื่-นามสกุล" (หลังจากลบ filler + punctuation)
+- "กรุณาระบุชื่อ-นามสกุล" → "ชื่อนามสกุล" (หลังจากลบ filler + punctuation)
 - "1. เบอร์โทรศัพท์" → "เบอร์โทรศัพท์"
 - "Email" → "email"
 - "  ชื่อ จริง  " → "ชื่อจริง"
@@ -155,7 +155,7 @@ API:
 **Test cases:**
 - Exact match → 1.0
 - Token overlap "เบอร์โทรศัพท์" vs "เบอร์ติดต่อ" → > 0
-- N-gram "เบอรโทรศัพท" (พิมพ์ผิด) vs "เบอร์โทรศัพท์" → > 0.72
+- N-gram "เบอร์โทรสัพท์" (พิมพ์ผิด) vs "เบอร์โทรศัพท์" → > 0.72
 - Type hint email + input type email → 0.65
 - Threshold boundary: 0.71 → null, 0.72 → match
 - Ambiguous: score1=0.80, score2=0.75 → null (ต่าง 0.05 < 0.08)
