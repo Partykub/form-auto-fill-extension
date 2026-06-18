@@ -29,8 +29,12 @@ const localPreview = document.querySelector("#local-preview");
 const serverPreview = document.querySelector("#server-preview");
 const useLocalButton = document.querySelector("#use-local");
 const useServerButton = document.querySelector("#use-server");
+const mappingsEmpty = document.querySelector("#mappings-empty");
+const mappingsTable = document.querySelector("#mappings-table");
+const mappingsBody = document.querySelector("#mappings-body");
 
 let state;
+const mappingStore = globalThis.FormAutoFill?.mappingStore;
 
 function normalizeBackendUrl(value) {
   return value.trim().replace(/\/+$/, "");
@@ -112,6 +116,51 @@ function renderSyncState(message = "") {
     serverPreview.replaceChildren(
       createProfilePreview(state.conflictServerProfile),
     );
+  }
+}
+
+async function renderSavedMappings() {
+  if (!mappingStore) {
+    mappingsEmpty.textContent = "Manual mapping store is unavailable";
+    mappingsEmpty.hidden = false;
+    mappingsTable.hidden = true;
+    return;
+  }
+
+  const mappings = await mappingStore.getAll();
+  const entries = Object.entries(mappings);
+  const fieldsByKey = new Map(
+    state.profile.fields.map((field) => [field.key, field]),
+  );
+
+  mappingsBody.replaceChildren();
+  mappingsEmpty.hidden = entries.length > 0;
+  mappingsTable.hidden = entries.length === 0;
+
+  for (const [questionKey, fieldKey] of entries) {
+    const row = document.createElement("tr");
+    const questionCell = document.createElement("td");
+    const fieldCell = document.createElement("td");
+    const statusCell = document.createElement("td");
+    const actionCell = document.createElement("td");
+    const status = document.createElement("span");
+    const deleteButton = document.createElement("button");
+    const valid = fieldsByKey.has(fieldKey);
+
+    questionCell.textContent = questionKey;
+    fieldCell.textContent = fieldKey;
+    status.className = `mapping-status ${valid ? "valid" : "invalid"}`;
+    status.textContent = valid ? "Valid" : "Invalid";
+    statusCell.append(status);
+
+    deleteButton.type = "button";
+    deleteButton.className = "danger";
+    deleteButton.dataset.questionKey = questionKey;
+    deleteButton.textContent = "Delete";
+    actionCell.append(deleteButton);
+
+    row.append(questionCell, fieldCell, statusCell, actionCell);
+    mappingsBody.append(row);
   }
 }
 
@@ -198,6 +247,8 @@ function renderFields() {
     card.append(header, grid);
     fieldsElement.append(card);
   });
+
+  void renderSavedMappings();
 }
 
 function collectProfileFromForm() {
@@ -259,6 +310,7 @@ async function trySync() {
     await persistState();
     renderFields();
     renderSyncState();
+    await renderSavedMappings();
   } catch (error) {
     if (error.code === "PROFILE_CONFLICT") {
       state.profileSyncStatus = PROFILE_SYNC_STATUS.CONFLICT;
@@ -304,6 +356,7 @@ async function load() {
   await persistState();
   renderFields();
   renderSyncState();
+  await renderSavedMappings();
   await trySync();
 }
 
@@ -380,6 +433,17 @@ useServerButton.addEventListener("click", async () => {
   await persistState();
   renderFields();
   renderSyncState();
+  await renderSavedMappings();
+});
+
+mappingsBody.addEventListener("click", async (event) => {
+  const button = event.target.closest("button[data-question-key]");
+  if (!button || !mappingStore) {
+    return;
+  }
+
+  await mappingStore.removeMapping(button.dataset.questionKey);
+  await renderSavedMappings();
 });
 
 void load();

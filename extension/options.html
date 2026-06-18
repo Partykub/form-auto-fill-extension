@@ -160,6 +160,44 @@
         padding-left: 20px;
       }
 
+      .mapping-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .mapping-table th,
+      .mapping-table td {
+        padding: 12px 10px;
+        border-bottom: 1px solid #e5eaf4;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      .mapping-table th {
+        font-size: 14px;
+      }
+
+      .mapping-status {
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .mapping-status.valid {
+        background: #e7f7ee;
+        color: #17633a;
+      }
+
+      .mapping-status.invalid {
+        background: #ffeded;
+        color: #922323;
+      }
+
+      .mapping-empty {
+        color: #63708a;
+      }
+
       [hidden] {
         display: none !important;
       }
@@ -229,7 +267,28 @@
       </form>
     </section>
 
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <h2>Saved Mappings</h2>
+          <p class="muted">Manual mappings ที่บันทึกไว้จะถูกใช้ก่อนส่งคำถามไป backend</p>
+        </div>
+      </div>
+      <div id="mappings-empty" class="mapping-empty">ยังไม่มี saved mappings</div>
+      <table id="mappings-table" class="mapping-table" hidden>
+        <thead>
+          <tr>
+            <th>Question Key</th>
+            <th>Mapped Field</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="mappings-body"></tbody>
+      </table>
+    </section>
+
+    <script src="mapping-store.js"></script>
     <script type="module" src="options.js"></script>
   </body>
 </html>
-

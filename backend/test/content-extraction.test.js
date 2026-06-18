@@ -115,6 +115,7 @@ test("start autofill fills supported Google Form inputs using extracted bindings
     `,
     url: "https://docs.google.com/forms/d/e/example/viewform",
     loadFillEngine: true,
+    loadMappingStore: true,
     loadContentScript: true,
   });
 
@@ -150,5 +151,151 @@ test("start autofill fills supported Google Form inputs using extracted bindings
     dom.window.document.querySelector('section[data-question-id="email"] input').value,
     "party@example.com",
   );
+  dom.window.close();
+});
+
+test("start autofill uses saved manual mappings before sending unmatched questions to backend", async () => {
+  const dom = await createExtensionDom({
+    html: `
+      <form data-google-form>
+        <section data-question-id="name" data-question-type="text">
+          <div data-question-title>ชื่อผู้สมัคร</div>
+          <input type="text">
+        </section>
+        <section data-question-id="email" data-question-type="text">
+          <div data-question-title>Email</div>
+          <input type="email">
+        </section>
+      </form>
+    `,
+    url: "https://docs.google.com/forms/d/e/example/viewform",
+    loadFillEngine: true,
+    loadMappingStore: true,
+    loadContentScript: true,
+  });
+
+  const profile = {
+    fields: [
+      { key: "full_name", value: "Party Kub" },
+      { key: "email", value: "party@example.com" },
+    ],
+  };
+  const manualMappings = {
+    [dom.window.FormAutoFill.mappingStore.normalize("ชื่อผู้สมัคร")]: "full_name",
+  };
+
+  dom.window.chrome.storage.local.get = (defaults, callback) => {
+    callback({
+      ...defaults,
+      backendUrl: "http://localhost:3000",
+      profile,
+      manualMappings,
+    });
+  };
+
+  dom.window.chrome.runtime.sendMessage = async (message) => {
+    assert.equal(message.type, "MATCH_QUESTIONS");
+    assert.equal(message.questions.length, 1);
+    assert.equal(message.questions[0].text, "Email");
+    return {
+      ok: true,
+      matches: [{ field: "email", value: "party@example.com" }],
+    };
+  };
+
+  const result = await sendContentMessage(dom.window, {
+    type: "START_AUTOFILL",
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.autofill.filled, 2);
+  dom.window.close();
+});
+
+test("start autofill returns manual mapping payload for unresolved questions", async () => {
+  const dom = await createExtensionDom({
+    html: `
+      <form data-google-form>
+        <section data-question-id="ambiguous" data-question-type="text">
+          <div data-question-title>ข้อ 1</div>
+          <input type="text">
+        </section>
+      </form>
+    `,
+    url: "https://docs.google.com/forms/d/e/example/viewform",
+    loadFillEngine: true,
+    loadMappingStore: true,
+    loadContentScript: true,
+  });
+
+  dom.window.chrome.storage.local.get = (defaults, callback) => {
+    callback({
+      ...defaults,
+      backendUrl: "http://localhost:3000",
+      profile: { fields: [] },
+      manualMappings: {},
+    });
+  };
+  dom.window.chrome.runtime.sendMessage = async () => ({
+    ok: true,
+    matches: [null],
+  });
+
+  const result = await sendContentMessage(dom.window, {
+    type: "START_AUTOFILL",
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.manualMappingRequired.questions.length, 1);
+  assert.equal(result.manualMappingRequired.questions[0].text, "ข้อ 1");
+  assert.equal(
+    dom.window.document.querySelector('section[data-question-id="ambiguous"] input').value,
+    "",
+  );
+  dom.window.close();
+});
+
+test("invalid saved manual mappings are ignored and fall back to backend matching", async () => {
+  const dom = await createExtensionDom({
+    html: `
+      <form data-google-form>
+        <section data-question-id="name" data-question-type="text">
+          <div data-question-title>ชื่อผู้สมัคร</div>
+          <input type="text">
+        </section>
+      </form>
+    `,
+    url: "https://docs.google.com/forms/d/e/example/viewform",
+    loadFillEngine: true,
+    loadMappingStore: true,
+    loadContentScript: true,
+  });
+
+  const mappingKey = dom.window.FormAutoFill.mappingStore.normalize("ชื่อผู้สมัคร");
+  dom.window.chrome.storage.local.get = (defaults, callback) => {
+    callback({
+      ...defaults,
+      backendUrl: "http://localhost:3000",
+      profile: { fields: [{ key: "email", value: "party@example.com" }] },
+      manualMappings: { [mappingKey]: "deleted_field" },
+    });
+  };
+
+  let backendCalls = 0;
+  dom.window.chrome.runtime.sendMessage = async (message) => {
+    backendCalls += 1;
+    assert.equal(message.questions.length, 1);
+    return {
+      ok: true,
+      matches: [{ field: "full_name", value: "Party Kub" }],
+    };
+  };
+
+  const result = await sendContentMessage(dom.window, {
+    type: "START_AUTOFILL",
+  });
+
+  assert.equal(backendCalls, 1);
+  assert.equal(result.autofill.filled, 1);
   dom.window.close();
 });

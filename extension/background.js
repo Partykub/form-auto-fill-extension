@@ -12,7 +12,7 @@ async function runAutofillInActiveTab() {
 
   try {
     await chrome.tabs.sendMessage(activeTab.id, {
-      type: "RUN_AUTOFILL",
+      type: "START_AUTOFILL",
       source: "background",
     });
   } catch (error) {
@@ -74,4 +74,3 @@ async function proxyMatchRequest(questions, backendUrl) {
 
   return { ok: true, matches: data.matches };
 }
-

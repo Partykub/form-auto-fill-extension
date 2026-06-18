@@ -139,6 +139,83 @@
         color: #922323;
       }
 
+      #manual-mapping-section {
+        display: none;
+        margin-bottom: 12px;
+        padding: 12px;
+        border: 1px solid #dce1ec;
+        border-radius: 10px;
+        background: #fbfcff;
+      }
+
+      #manual-mapping-section.visible {
+        display: block;
+      }
+
+      #manual-mapping-list {
+        display: grid;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .mapping-item {
+        padding: 10px;
+        border: 1px solid #dce1ec;
+        border-radius: 8px;
+        background: white;
+      }
+
+      .mapping-item[data-skipped="true"] {
+        opacity: 0.7;
+        background: #f5f6fb;
+      }
+
+      .mapping-item p {
+        margin-bottom: 8px;
+      }
+
+      .mapping-item select {
+        box-sizing: border-box;
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid #bfc7d8;
+        border-radius: 8px;
+        background: white;
+        font: inherit;
+      }
+
+      .mapping-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-top: 8px;
+      }
+
+      .mapping-preview {
+        color: #536078;
+        font-size: 12px;
+      }
+
+      .mapping-skip {
+        margin-top: 0;
+        padding: 8px 10px;
+        border-radius: 6px;
+        background: #edf1fb;
+        color: #172033;
+        width: auto;
+      }
+
+      .manual-mapping-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .manual-mapping-actions button {
+        margin-top: 0;
+      }
+
       /* Auto Submit Toggle */
       .toggle-row {
         display: flex;
@@ -205,6 +282,7 @@
     </div>
 
     <div id="result">
+      <div id="result-message"></div>
       <div class="stat">
         <span class="label">กรอกสำเร็จ:</span>
         <span id="filled-count">0</span>
@@ -219,6 +297,16 @@
       </div>
     </div>
 
+    <section id="manual-mapping-section" aria-live="polite">
+      <strong>เลือกข้อมูลสำหรับคำถามที่ระบบยังจับคู่ไม่ได้</strong>
+      <p id="manual-mapping-help">เลือก field ที่ตรง แล้วกด Save & Fill</p>
+      <div id="manual-mapping-list"></div>
+      <div class="manual-mapping-actions">
+        <button id="save-mappings" type="button">Save & Fill</button>
+        <button id="cancel-mappings" class="secondary" type="button">Cancel</button>
+      </div>
+    </section>
+
     <button id="autofill" type="button" disabled>Autofill</button>
     <button id="options" class="secondary" type="button">Manage Profile</button>
 
@@ -230,6 +318,7 @@
       </label>
     </div>
 
+    <script src="mapping-store.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>

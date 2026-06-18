@@ -7,6 +7,7 @@
   let extractionCache;
   let autofillRunning = false;
   let stopObserving = () => {};
+  const MANUAL_MAPPING_CONFIDENCE_THRESHOLD = 0.72;
 
   function serializeError(error) {
     return {
@@ -62,7 +63,122 @@
     return extractionCache;
   }
 
-  async function startAutofill() {
+  async function getBackendUrl() {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(
+        { backendUrl: "http://localhost:3000" },
+        (result) => {
+          resolve(result.backendUrl || "http://localhost:3000");
+        },
+      );
+    });
+  }
+
+  async function getStoredProfile() {
+    return new Promise((resolve) => {
+      chrome.storage.local.get({ profile: null }, (result) => {
+        resolve(result.profile || null);
+      });
+    });
+  }
+
+  function buildProfileFieldMap(profile) {
+    return new Map(
+      Array.isArray(profile?.fields)
+        ? profile.fields.map((field) => [field.key, field])
+        : [],
+    );
+  }
+
+  async function buildQuestionMatches(questions) {
+    const mappingStore = namespace.mappingStore;
+    const manualMappings = await mappingStore?.getAll?.();
+    const profile = await getStoredProfile();
+    const fieldsByKey = buildProfileFieldMap(profile);
+    const matches = new Array(questions.length).fill(null);
+    const backendQuestions = [];
+    const backendIndexes = [];
+
+    questions.forEach((question, index) => {
+      const mappingKey = mappingStore?.normalize?.(question.text);
+      const profileFieldKey = mappingKey ? manualMappings?.[mappingKey] : null;
+      const field = profileFieldKey ? fieldsByKey.get(profileFieldKey) : null;
+
+      if (profileFieldKey && field) {
+        matches[index] = {
+          field: profileFieldKey,
+          value: field.value || "",
+          confidence: 1.0,
+          matchSource: "manual_mapping",
+        };
+        return;
+      }
+
+      backendQuestions.push(question);
+      backendIndexes.push(index);
+    });
+
+    if (backendQuestions.length > 0) {
+      const backendUrl = await getBackendUrl();
+      const matchResponse = await chrome.runtime.sendMessage({
+        type: "MATCH_QUESTIONS",
+        questions: backendQuestions,
+        backendUrl,
+      });
+
+      if (!matchResponse?.ok) {
+        return {
+          ok: false,
+          error: matchResponse.error || {
+            code: "MATCH_FAILED",
+            message: "Failed to match questions",
+          },
+        };
+      }
+
+      backendIndexes.forEach((index, backendIndex) => {
+        matches[index] = matchResponse.matches?.[backendIndex] || null;
+      });
+    }
+
+    return {
+      ok: true,
+      profile,
+      matches,
+    };
+  }
+
+  function collectUnresolvedQuestions(questions, matches, skippedQuestionIds) {
+    const skippedIds = new Set(skippedQuestionIds || []);
+    return questions
+      .map((question, index) => ({
+        question,
+        match: matches[index],
+      }))
+      .filter(({ question, match }) => {
+        if (skippedIds.has(question.id)) {
+          return false;
+        }
+
+        if (!match?.field) {
+          return true;
+        }
+
+        return (
+          typeof match.confidence === "number" &&
+          match.confidence < MANUAL_MAPPING_CONFIDENCE_THRESHOLD
+        );
+      })
+      .map(({ question, match }) => ({
+        id: question.id,
+        text: question.text,
+        type: question.type,
+        confidence: match?.confidence ?? null,
+        matchSource: match?.matchSource ?? null,
+      }));
+  }
+
+  async function startAutofill({ skippedQuestionIds = [] } = {}) {
     autofillRunning = true;
     try {
       const extraction = await extractQuestions({ force: true });
@@ -92,24 +208,30 @@
         };
       }
 
-      const backendUrl = await getBackendUrl();
-      const matchResponse = await chrome.runtime.sendMessage({
-        type: "MATCH_QUESTIONS",
-        questions: supportedQuestions,
-        backendUrl,
-      });
-
-      if (!matchResponse?.ok) {
+      const preparedMatches = await buildQuestionMatches(supportedQuestions);
+      if (!preparedMatches.ok) {
         return {
           ...extraction,
           autofill: {
             filled: 0,
             skipped: 0,
             failed: 0,
-            error: matchResponse.error || {
-              code: "MATCH_FAILED",
-              message: "Failed to match questions",
-            },
+            error: preparedMatches.error,
+          },
+        };
+      }
+
+      const unresolvedQuestions = collectUnresolvedQuestions(
+        supportedQuestions,
+        preparedMatches.matches,
+        skippedQuestionIds,
+      );
+
+      if (unresolvedQuestions.length > 0) {
+        return {
+          ...extraction,
+          manualMappingRequired: {
+            questions: unresolvedQuestions,
           },
         };
       }
@@ -123,7 +245,7 @@
 
       const fillResult = await namespace.fillEngine.fillAll(
         supportedQuestions,
-        matchResponse.matches,
+        preparedMatches.matches,
         questionBindings,
       );
 
@@ -134,17 +256,6 @@
     } finally {
       autofillRunning = false;
     }
-  }
-
-  async function getBackendUrl() {
-    return new Promise((resolve) => {
-      chrome.storage.local.get(
-        { backendUrl: "http://localhost:3000" },
-        (result) => {
-          resolve(result.backendUrl || "http://localhost:3000");
-        },
-      );
-    });
   }
 
   async function handleMessage(message) {
@@ -175,7 +286,11 @@
           },
         };
       }
-      return startAutofill();
+      return startAutofill({
+        skippedQuestionIds: Array.isArray(message.skippedQuestionIds)
+          ? message.skippedQuestionIds
+          : [],
+      });
     }
 
     return serializeError(

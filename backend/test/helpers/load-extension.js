@@ -18,6 +18,7 @@ export async function createExtensionDom({
   url = "https://example.com/",
   loadContentScript = false,
   loadFillEngine = false,
+  loadMappingStore = false,
 } = {}) {
   const dom = new JSDOM(html, {
     url,
@@ -26,6 +27,16 @@ export async function createExtensionDom({
   });
 
   dom.window.chrome = {
+    storage: {
+      local: {
+        get(defaults, callback) {
+          callback(defaults);
+        },
+        set(_values, callback) {
+          callback?.();
+        },
+      },
+    },
     runtime: {
       onMessage: {
         addListener(listener) {
@@ -42,6 +53,11 @@ export async function createExtensionDom({
 
   if (loadFillEngine) {
     const source = await readFile(path.join(extensionDirectory, "fill-engine.js"), "utf8");
+    dom.window.eval(source);
+  }
+
+  if (loadMappingStore) {
+    const source = await readFile(path.join(extensionDirectory, "mapping-store.js"), "utf8");
     dom.window.eval(source);
   }
 
